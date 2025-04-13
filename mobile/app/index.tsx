@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import {
   View,
   ImageBackground,
@@ -10,6 +11,8 @@ import {
 const { width, height } = Dimensions.get("window");
 
 const Home = () => {
+  const router = useRouter();
+
   return (
     <ImageBackground
       source={require("../assets/images/home-bg.png")}
@@ -18,7 +21,7 @@ const Home = () => {
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.settingsButton}
-          onPress={() => console.log("Settings pressed")}
+          onPress={() => router.push("/personality")}
         >
           <Image
             source={require("../assets/images/settings-button.png")}
@@ -28,7 +31,7 @@ const Home = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.postcardsButton}
-          onPress={() => console.log("Postcards pressed")}
+          onPress={() => router.push("/postcards")}
         >
           <Image
             source={require("../assets/images/postcards-button.png")}
