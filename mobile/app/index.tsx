@@ -21,7 +21,7 @@ const Home = () => {
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.settingsButton}
-          onPress={() => router.push("/personality")}
+          onPress={() => console.log("Settings pressed")}
         >
           <Image
             source={require("../assets/images/settings-button.png")}
