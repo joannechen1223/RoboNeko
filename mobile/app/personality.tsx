@@ -5,7 +5,7 @@ const Personality = () => {
   const router = useRouter();
 
   return (
-    <View>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <Text>Personality</Text>
       <TouchableOpacity onPress={() => router.back()}>
         <Text>Back</Text>

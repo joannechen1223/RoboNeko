@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
   View,
   ImageBackground,
@@ -12,6 +13,17 @@ const { width, height } = Dimensions.get("window");
 
 const Home = () => {
   const router = useRouter();
+  const [catImage, setCatImage] = useState(
+    require("../assets/images/personality-1.png"),
+  );
+
+  const handleCatClick = () => {
+    setCatImage(require("../assets/images/personality-2.png"));
+    setTimeout(() => {
+      router.push("/personality");
+      setCatImage(require("../assets/images/personality-1.png"));
+    }, 500);
+  };
 
   return (
     <ImageBackground
@@ -21,10 +33,10 @@ const Home = () => {
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.settingsButton}
-          onPress={() => console.log("Settings pressed")}
+          onPress={handleCatClick}
         >
           <Image
-            source={require("../assets/images/settings-button.png")}
+            source={catImage}
             style={styles.settingsIcon}
             resizeMode="contain"
           />
