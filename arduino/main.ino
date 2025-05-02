@@ -10,6 +10,10 @@
 #include <SD.h>
 #include <Adafruit_VS1053.h>
 
+// websocket
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+
 // These are the pins used
 #define VS1053_RESET   -1     // VS1053 reset pin (not used!)
 
@@ -49,6 +53,13 @@ Adafruit_MPR121 touchSensor = Adafruit_MPR121();
 #define TAIL_SERVO_MIN 150
 #define TAIL_SERVO_MAX 600
 
+// websocket
+const char* ssid = "MakerLab";
+const char* password = "makerlab";
+
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
+
 // Proper map initialization
 std::map<int, std::string> touchSensorMap = {
   {0, "head"},
@@ -86,6 +97,7 @@ void setup() {
   } else {
     Serial.println("Failed to start PWM");
   }
+  pwm.setPWMFreq(50); // 50 Hz for servos
 
   if (! musicPlayer.begin()) { // initialise the music player
     Serial.println(F("Couldn't find VS1053, do you have the right pins defined?"));
@@ -105,7 +117,29 @@ void setup() {
   // Set volume for left, right channels. lower numbers == louder volume!
   musicPlayer.setVolume(10,10);
 
-  pwm.setPWMFreq(50); // 50 Hz for servos
+  
+  // init websocket
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("Connected to WiFi");
+  Serial.print("ESP32 IP address: ");
+  Serial.println(WiFi.localIP());
+
+  // Setup WebSocket
+  ws.onEvent(onWebSocketEvent);
+  server.addHandler(&ws);
+
+  // Serve a simple page (optional)
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", "WebSocket server running.");
+  });
+
+  server.begin();
+
   delay(10);
 }
 
@@ -146,6 +180,8 @@ void tailMove() {
 }
 
 void loop() {
+  ws.cleanupClients();
+
   uint16_t touched = touchSensor.touched();
   std::vector<std::string> actions;
   int touchedSensorNum = -1;
@@ -212,5 +248,36 @@ void printDirectory(File dir, int numTabs) {
       Serial.println(entry.size(), DEC);
     }
     entry.close();
+  }
+}
+
+void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
+                      AwsEventType type, void *arg, uint8_t *data, size_t len) {
+  switch (type) {
+    case WS_EVT_CONNECT:
+      Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+      break;
+
+    case WS_EVT_DISCONNECT:
+      Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      break;
+
+    case WS_EVT_DATA: {
+      AwsFrameInfo *info = (AwsFrameInfo *)arg;
+      if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+        String msg = String((char *)data);
+        Serial.print("Received WebSocket message: ");
+        Serial.println(msg);
+      }
+      break;
+    }
+
+    case WS_EVT_PONG:
+      Serial.printf("WebSocket client #%u sent pong\n", client->id());
+      break;
+
+    case WS_EVT_ERROR:
+      Serial.printf("WebSocket client #%u error\n", client->id());
+      break;
   }
 }
