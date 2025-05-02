@@ -5,6 +5,35 @@
 #include <map>
 #include <string>
 
+// include SPI, MP3 and SD libraries
+#include <SPI.h>
+#include <SD.h>
+#include <Adafruit_VS1053.h>
+
+// These are the pins used
+#define VS1053_RESET   -1     // VS1053 reset pin (not used!)
+
+// Feather ESP32
+#if defined(ESP32) && !defined(ARDUINO_ADAFRUIT_FEATHER_ESP32S2)
+  #define VS1053_CS      32     // VS1053 chip select pin (output)
+  #define VS1053_DCS     33     // VS1053 Data/command select pin (output)
+  #define CARDCS         14     // Card chip select pin
+  #define VS1053_DREQ    15     // VS1053 Data request, ideally an Interrupt pin
+
+// Feather M4, M0, 328, ESP32S2, nRF52840 or 32u4
+#else
+  #define VS1053_CS       6     // VS1053 chip select pin (output)
+  #define VS1053_DCS     10     // VS1053 Data/command select pin (output)
+  #define CARDCS          5     // Card chip select pin
+  // DREQ should be an Int pin *if possible* (not possible on 32u4)
+  #define VS1053_DREQ     9     // VS1053 Data request, ideally an Interrupt pin
+
+#endif
+
+
+Adafruit_VS1053_FilePlayer musicPlayer =
+  Adafruit_VS1053_FilePlayer(VS1053_RESET, VS1053_CS, VS1053_DCS, VS1053_DREQ, CARDCS);
+
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 Adafruit_MPR121 touchSensor = Adafruit_MPR121();
 
@@ -57,6 +86,24 @@ void setup() {
   } else {
     Serial.println("Failed to start PWM");
   }
+
+  if (! musicPlayer.begin()) { // initialise the music player
+    Serial.println(F("Couldn't find VS1053, do you have the right pins defined?"));
+    while (1);
+ }
+ Serial.println(F("VS1053 found"));
+
+ if (!SD.begin(CARDCS)) {
+    Serial.println(F("SD failed, or not present"));
+    while (1);  // don't do anything more
+  }
+  Serial.println("SD OK!");
+
+  // list files
+  printDirectory(SD.open("/"), 0);
+
+  // Set volume for left, right channels. lower numbers == louder volume!
+  musicPlayer.setVolume(10,10);
 
   pwm.setPWMFreq(50); // 50 Hz for servos
   delay(10);
@@ -126,8 +173,10 @@ void loop() {
         tailMove();
       } else if (actions[i] == "meowSound") {
         Serial.println("Meow!");
+        musicPlayer.playFullFile("/meow.mp3");
       } else if (actions[i] == "angrySound") {
         Serial.println("Haaaaaaah!!!!!!");
+        musicPlayer.playFullFile("/angry.mp3");
       }
     }
   }
@@ -137,5 +186,31 @@ void loop() {
     if (touchSensorMap.find(i) != touchSensorMap.end()) {
       prevTouched[i] = currentTouched[i];
     }
+  }
+}
+
+/// File listing helper
+void printDirectory(File dir, int numTabs) {
+  while(true) {
+
+    File entry =  dir.openNextFile();
+    if (! entry) {
+      // no more files
+      //Serial.println("**nomorefiles**");
+      break;
+    }
+    for (uint8_t i=0; i<numTabs; i++) {
+      Serial.print('\t');
+    }
+    Serial.print(entry.name());
+    if (entry.isDirectory()) {
+      Serial.println("/");
+      printDirectory(entry, numTabs+1);
+    } else {
+      // files have sizes, directories do not
+      Serial.print("\t\t");
+      Serial.println(entry.size(), DEC);
+    }
+    entry.close();
   }
 }
