@@ -9,6 +9,8 @@ import {
   Image,
 } from "react-native";
 
+import { useWebSocket } from "@/features/WebSocket/WebSocketContext";
+
 const { width, height } = Dimensions.get("window");
 
 const Home = () => {
@@ -16,10 +18,17 @@ const Home = () => {
   const [catImage, setCatImage] = useState(
     require("../assets/images/personality-1.png"),
   );
+  const { sendMessage } = useWebSocket();
 
   const handleCatClick = () => {
     setCatImage(require("../assets/images/personality-2.png"));
     setTimeout(() => {
+      sendMessage({
+        type: "personality",
+        data: {
+          personality: "cat",
+        },
+      });
       router.push("/personality");
       setCatImage(require("../assets/images/personality-1.png"));
     }, 500);
