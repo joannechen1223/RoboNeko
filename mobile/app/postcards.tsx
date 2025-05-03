@@ -1,8 +1,3 @@
-import {
-  useFonts,
-  CherryBombOne_400Regular as CherryBombOne,
-} from "@expo-google-fonts/cherry-bomb-one";
-import { SourGummy_400Regular as SourGummy } from "@expo-google-fonts/sour-gummy";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -24,29 +19,15 @@ const Postcards = () => {
   const postcards = useSelector(
     (state: RootState) => state.postcards.postcards,
   );
-  // Load the Google fonts
-  const [fontsLoaded] = useFonts({
-    CherryBombOne: CherryBombOne,
-    SourGummy: SourGummy,
-  });
 
   // Animation setup
   const [isFlipped, setIsFlipped] = useState<boolean[]>(
     postcards.map(() => false),
   );
 
-  // Show loading or the actual content
-  if (!fontsLoaded) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.titleContainer}>
+      <View style={styles.titleWrapper}>
         <TouchableOpacity onPress={() => router.back()}>
           <Image
             source={require("../assets/images/close-button.png")}
@@ -102,10 +83,14 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
   },
-  titleContainer: {
+  titleWrapper: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   customTitle: {
     fontSize: 30,
