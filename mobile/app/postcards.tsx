@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useSelector } from "react-redux";
 
-import Postcard from "@/components/Postcard";
+import Postcard from "@/components/PostcardComponent";
 
 import { RootState } from "./store";
 
