@@ -8,10 +8,10 @@ import {
   Text,
   Image,
   StyleSheet,
-  ImageSourcePropType,
 } from "react-native";
 
 import { getStamp } from "@/features/Postcards/Stamps";
+import { Postcard as PostcardType } from "@/features/Postcards/postcardData";
 
 import VerticalLine from "./VerticalLine";
 
@@ -22,14 +22,7 @@ const Postcard = ({
 }: {
   isFlipped: boolean;
   setIsFlipped: (isFlipped: boolean) => void;
-  postcard: {
-    id: number;
-    image: ImageSourcePropType;
-    stampId: number;
-    content: string;
-    date: string;
-    isShown: boolean;
-  };
+  postcard: PostcardType;
 }) => {
   const flipAnim = useRef(new Animated.Value(0)).current;
   const flipCard = () => {
@@ -81,7 +74,11 @@ const Postcard = ({
             { backfaceVisibility: "hidden" },
           ]}
         >
-          <Image source={postcard.image} style={styles.postcardImage} />
+          <Image
+            source={postcard.image}
+            style={styles.postcardImage}
+            resizeMode="cover"
+          />
 
           {!postcard.isShown && (
             <>

@@ -11,6 +11,8 @@ import { RootState } from "@/app/store";
 
 import { setIsConnected } from "./webSocketSlice";
 
+import { setIntimacyScore } from "../Postcards/postcardsSlice";
+
 // Define types for messages and context value
 interface Message {
   // Define your message structure here
@@ -21,6 +23,7 @@ interface WebSocketContextValue {
   socket: WebSocket | null;
   messages: Message[];
   sendMessage: (message: any) => void;
+  sendActionPreferences: (actionPreferences: { [key: string]: number }) => void;
   isConnected: boolean;
 }
 
@@ -42,6 +45,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const isConnected = useSelector(
     (state: RootState) => state.webSocket.isConnected,
   );
+  const actionPreferences = useSelector(
+    (state: RootState) => state.personality.actionPreferences,
+  );
 
   useEffect(() => {
     if (!ipAddress) {
@@ -55,12 +61,28 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     newSocket.onopen = () => {
       console.log("WebSocket connection established");
       dispatch(setIsConnected(true));
+
+      // Send action preferences when connection is established
+      if (actionPreferences) {
+        sendMessage(
+          {
+            type: "action_preferences",
+            action_preferences: actionPreferences,
+          },
+          newSocket,
+        );
+        console.log("Sent initial action preferences:", actionPreferences);
+      }
     };
 
     newSocket.onmessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
         setMessages((prev) => [...prev, data]);
+        console.log("Received message:", data);
+        if (data.type === "intimacy_score") {
+          dispatch(setIntimacyScore(data.intimacy_score));
+        }
       } catch (error) {
         console.error("Failed to parse WebSocket message:", error);
       }
@@ -82,21 +104,33 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     return () => {
       newSocket.close();
     };
-  }, [url, ipAddress, dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, ipAddress, dispatch, actionPreferences]);
 
-  // Methods to interact with the socket
-  const sendMessage = (message: any): void => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify(message));
+  // Helper function to send messages through a specific socket or the current one
+  const sendMessage = (message: any, socketToUse?: WebSocket): void => {
+    const socketInstance = socketToUse || socket;
+    if (socketInstance && socketInstance.readyState === WebSocket.OPEN) {
+      socketInstance.send(JSON.stringify(message));
     } else {
       console.warn("Cannot send message, WebSocket is not connected");
     }
+  };
+
+  const sendActionPreferences = (actionPreferences: {
+    [key: string]: number;
+  }): void => {
+    sendMessage({
+      type: "action_preferences",
+      action_preferences: actionPreferences,
+    });
   };
 
   const value: WebSocketContextValue = {
     socket,
     messages,
     sendMessage,
+    sendActionPreferences,
     isConnected,
   };
 

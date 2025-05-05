@@ -17,6 +17,7 @@ import {
   setActionPreferences,
   setIsPreferencesSecret,
 } from "@/features/Personality/personalitySlice";
+import { useWebSocket } from "@/features/WebSocket/WebSocketContext";
 
 import { RootState } from "./store";
 
@@ -37,6 +38,11 @@ const Personality = () => {
   const [editedIsPreferencesSecret, setEditedIsPreferencesSecret] =
     useState(isPreferencesSecret);
 
+  const isWSConnected = useSelector(
+    (state: RootState) => state.webSocket.isConnected,
+  );
+  const { sendActionPreferences } = useWebSocket();
+
   const handleSave = () => {
     // Dispatch action to update name in Redux store
     let randomActionPreferences = {};
@@ -50,6 +56,9 @@ const Personality = () => {
     }
     dispatch(setIsPreferencesSecret(editedIsPreferencesSecret));
     setModalVisible(false);
+    if (isWSConnected) {
+      sendActionPreferences(editedActionPreferences);
+    }
   };
 
   const handlePreferenceUpdate = (bodyPart: string, newScore: number) => {

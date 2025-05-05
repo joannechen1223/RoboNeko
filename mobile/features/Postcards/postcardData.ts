@@ -1,4 +1,15 @@
-export const postcardData = [
+import { ImageSourcePropType } from "react-native";
+
+export type Postcard = {
+  id: number;
+  image: ImageSourcePropType;
+  stampId: number;
+  content: string;
+  date: string;
+  isShown: boolean;
+};
+
+export const postcardData: Postcard[] = [
   {
     id: 0,
     image: require("@/assets/images/postcards/postcard-0.png"),
@@ -6,7 +17,7 @@ export const postcardData = [
     content:
       "I found a magical tree with pink petals dancing in the air! I tried catching them with my paws, but they're sneaky! Now I smell like flowers. Heehee~ you'd be proud of my petal pouncing!",
     date: "",
-    isShown: true,
+    isShown: false,
   },
   {
     id: 1,

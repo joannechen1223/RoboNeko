@@ -25,19 +25,13 @@ const Home = () => {
   const [catImage, setCatImage] = useState(
     require("../assets/images/personality-1.png"),
   );
-  const { sendMessage, isConnected } = useWebSocket();
+  const { isConnected } = useWebSocket();
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [editIpAddress, setEditIpAddress] = useState("");
 
   const handleCatClick = () => {
     setCatImage(require("../assets/images/personality-2.png"));
     setTimeout(() => {
-      sendMessage({
-        type: "personality",
-        data: {
-          personality: "cat",
-        },
-      });
       router.push("/personality");
       setCatImage(require("../assets/images/personality-1.png"));
     }, 500);
