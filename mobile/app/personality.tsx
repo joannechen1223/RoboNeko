@@ -99,19 +99,19 @@ const Personality = () => {
   return (
     <View style={styles.container}>
       <View style={styles.titleWrapper}>
+        <View style={styles.titleContainer}>
+          <Image
+            source={require("../assets/images/casonality-icon.png")}
+            style={styles.titleIcon}
+          />
+          <Text style={styles.customTitle}>Catsonality</Text>
+        </View>
         <TouchableOpacity onPress={() => router.back()}>
           <Image
             source={require("../assets/images/close-button.png")}
             style={styles.backButton}
           />
         </TouchableOpacity>
-        <View style={styles.titleContainer}>
-          <Text style={styles.customTitle}>Catsonality</Text>
-          <Image
-            source={require("../assets/images/casonality-icon.png")}
-            style={styles.titleIcon}
-          />
-        </View>
       </View>
       <View style={styles.personalityContainer}>
         <Image
@@ -297,7 +297,6 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    width: "70%",
     gap: 5,
     justifyContent: "flex-end",
   },

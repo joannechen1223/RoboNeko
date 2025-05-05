@@ -1,9 +1,9 @@
 import { SVGProps } from "react";
 
+import Stamp0 from "@/assets/images/stamps/stamp-0.svg";
 import Stamp1 from "@/assets/images/stamps/stamp-1.svg";
 import Stamp10 from "@/assets/images/stamps/stamp-10.svg";
 import Stamp11 from "@/assets/images/stamps/stamp-11.svg";
-import Stamp12 from "@/assets/images/stamps/stamp-12.svg";
 import Stamp2 from "@/assets/images/stamps/stamp-2.svg";
 import Stamp3 from "@/assets/images/stamps/stamp-3.svg";
 import Stamp4 from "@/assets/images/stamps/stamp-4.svg";
@@ -20,6 +20,9 @@ export const getStamp = ({
 }): React.FC<SVGProps<SVGSVGElement>> => {
   let stamp: React.FC<SVGProps<SVGSVGElement>>;
   switch (id) {
+    case 0:
+      stamp = Stamp0;
+      break;
     case 1:
       stamp = Stamp1;
       break;
@@ -52,9 +55,6 @@ export const getStamp = ({
       break;
     case 11:
       stamp = Stamp11;
-      break;
-    case 12:
-      stamp = Stamp12;
       break;
     default:
       stamp = Stamp1;

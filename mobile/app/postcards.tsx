@@ -28,19 +28,19 @@ const Postcards = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.titleWrapper}>
+        <View style={styles.titleContainer}>
+          <Image
+            source={require("../assets/images/postcards-icon.png")}
+            style={styles.titleIcon}
+          />
+          <Text style={styles.customTitle}>Postcards</Text>
+        </View>
         <TouchableOpacity onPress={() => router.back()}>
           <Image
             source={require("../assets/images/close-button.png")}
             style={styles.backButton}
           />
         </TouchableOpacity>
-        <View style={styles.titleContainer}>
-          <Text style={styles.customTitle}>Postcards</Text>
-          <Image
-            source={require("../assets/images/postcards-icon.png")}
-            style={styles.titleIcon}
-          />
-        </View>
       </View>
       <View style={styles.postcardContainer}>
         {postcards.map((postcard, index) => (
@@ -63,7 +63,9 @@ const Postcards = () => {
         />
         <Text style={styles.footerText}>
           You've received{" "}
-          <Text style={styles.footerTextHighlight}>{postcards.length}</Text>{" "}
+          <Text style={styles.footerTextHighlight}>
+            {postcards.filter((postcard) => postcard.isShown).length}
+          </Text>{" "}
           postcards!
         </Text>
       </View>
@@ -111,37 +113,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     gap: 20,
-  },
-  cardWrapper: {
-    width: "100%",
-    height: 250,
-  },
-  postcardFront: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 10,
-  },
-  postcardImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  postcardBack: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  postcardText: {
-    fontSize: 20,
-    color: "#333",
   },
   footerContainer: {
     alignItems: "center",
