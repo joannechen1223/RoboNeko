@@ -117,7 +117,7 @@ void setup() {
   printDirectory(SD.open("/"), 0);
 
   // Set volume for left, right channels. lower numbers == louder volume!
-  musicPlayer.setVolume(10,10);
+  musicPlayer.setVolume(1,1);
   
   // init websocket
   WiFi.begin(ssid, password);
