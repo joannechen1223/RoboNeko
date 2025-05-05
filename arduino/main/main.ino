@@ -53,6 +53,8 @@ Adafruit_MPR121 touchSensor = Adafruit_MPR121();
 #define TAIL_SERVO_MIN 150
 #define TAIL_SERVO_MAX 600
 
+#define TOUCH_SENSITIVITY 20
+
 // websocket
 const char* ssid = "MakerLab";
 const char* password = "makerlab";
@@ -62,7 +64,7 @@ AsyncWebSocket ws("/ws");
 
 // Proper map initialization
 std::map<int, std::string> touchSensorMap = {
-  {0, "head"},
+  {6, "head"},
   {1, "ear_left"},
   {2, "ear_right"},
   {4, "belly"},
@@ -116,7 +118,6 @@ void setup() {
 
   // Set volume for left, right channels. lower numbers == louder volume!
   musicPlayer.setVolume(10,10);
-
   
   // init websocket
   WiFi.begin(ssid, password);
@@ -182,13 +183,17 @@ void tailMove() {
 void loop() {
   ws.cleanupClients();
 
-  uint16_t touched = touchSensor.touched();
+  //uint16_t touched = touchSensor.touched();
+
   std::vector<std::string> actions;
   int touchedSensorNum = -1;
 
   for (int i = 0; i < 12; i++) {
     if (touchSensorMap.find(i) != touchSensorMap.end()) {
-      currentTouched[i] = touched & (1 << i);
+      uint16_t filtered = touchSensor.filteredData(i);
+      uint16_t baseline = touchSensor.baselineData(i);
+      int diff = baseline - filtered;
+      currentTouched[i] = diff > TOUCH_SENSITIVITY;
       if (currentTouched[i]) {
         Serial.print(i);
         Serial.println(" Sensor touch detected");
@@ -200,7 +205,7 @@ void loop() {
 
   if (touchedSensorNum != -1 && currentTouched[touchedSensorNum] != prevTouched[touchedSensorNum]) {
     for (int i = 0; i < actions.size(); i++) {
-      Serial.println(actions[i].c_str());  // Added .c_str()
+      //Serial.println(actions[i].c_str());  // Added .c_str()
       if (actions[i] == "headMove") {
         headMove();
       } else if (actions[i] == "handMove") {
