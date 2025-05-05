@@ -1,3 +1,5 @@
+import React, { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { useRef } from "react";
 import {
   View,
@@ -26,10 +28,13 @@ const Postcard = ({
     stampId: number;
     content: string;
     date: string;
+    isShown: boolean;
   };
 }) => {
   const flipAnim = useRef(new Animated.Value(0)).current;
   const flipCard = () => {
+    if (!postcard.isShown) return;
+
     if (isFlipped) {
       Animated.timing(flipAnim, {
         toValue: 0,
@@ -65,8 +70,10 @@ const Postcard = ({
 
   const Stamp = getStamp({ id: postcard.stampId });
   return (
-    <TouchableOpacity onPress={flipCard}>
-      <View style={styles.cardWrapper}>
+    <TouchableOpacity onPress={flipCard} disabled={!postcard.isShown}>
+      <View
+        style={[styles.cardWrapper, !postcard.isShown && styles.disabledCard]}
+      >
         <Animated.View
           style={[
             styles.postcardFront,
@@ -75,6 +82,15 @@ const Postcard = ({
           ]}
         >
           <Image source={postcard.image} style={styles.postcardImage} />
+
+          {!postcard.isShown && (
+            <>
+              <BlurView intensity={30} style={styles.blurOverlay} tint="dark" />
+              <View style={styles.lockOverlay}>
+                <Ionicons name="lock-closed" size={50} color="white" />
+              </View>
+            </>
+          )}
         </Animated.View>
         <Animated.View
           style={[
@@ -160,6 +176,28 @@ const styles = StyleSheet.create({
     width: "80%",
     alignItems: "flex-start",
     paddingLeft: 10,
+  },
+  disabledCard: {
+    opacity: 0.3,
+  },
+  blurOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 10,
+  },
+  lockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
   },
 });
 
