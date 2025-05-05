@@ -29,14 +29,14 @@ export default function RootLayout() {
   }
 
   return (
-    <WebSocketProvider url="ws://192.168.1.67/ws">
-      <Provider store={store}>
+    <Provider store={store}>
+      <WebSocketProvider>
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="postcards" options={{ headerShown: false }} />
           <Stack.Screen name="personality" options={{ headerShown: false }} />
         </Stack>
-      </Provider>
-    </WebSocketProvider>
+      </WebSocketProvider>
+    </Provider>
   );
 }

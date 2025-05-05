@@ -5,6 +5,11 @@ import React, {
   useState,
   ReactNode,
 } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import { RootState } from "@/app/store";
+
+import { setIsConnected } from "./webSocketSlice";
 
 // Define types for messages and context value
 interface Message {
@@ -24,21 +29,32 @@ const WebSocketContext = createContext<WebSocketContextValue | null>(null);
 
 interface WebSocketProviderProps {
   children: ReactNode;
-  url: string;
 }
 
-export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
+export function WebSocketProvider({ children }: WebSocketProviderProps) {
+  const dispatch = useDispatch();
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const ipAddress = useSelector(
+    (state: RootState) => state.webSocket.ipAddress,
+  );
+  const url = `ws://${ipAddress}/ws`;
+  const isConnected = useSelector(
+    (state: RootState) => state.webSocket.isConnected,
+  );
 
   useEffect(() => {
+    if (!ipAddress) {
+      console.warn("No IP address found");
+      return;
+    }
     // Create the WebSocket connection once at the provider level
     const newSocket = new WebSocket(url);
+    console.log("WebSocket connecting to", url);
 
     newSocket.onopen = () => {
       console.log("WebSocket connection established");
-      setIsConnected(true);
+      dispatch(setIsConnected(true));
     };
 
     newSocket.onmessage = (event: MessageEvent) => {
@@ -52,12 +68,12 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
 
     newSocket.onclose = () => {
       console.log("WebSocket connection closed");
-      setIsConnected(false);
+      dispatch(setIsConnected(false));
     };
 
     newSocket.onerror = (error) => {
       console.error("WebSocket error:", error);
-      setIsConnected(false);
+      dispatch(setIsConnected(false));
     };
 
     setSocket(newSocket);
@@ -66,7 +82,7 @@ export function WebSocketProvider({ children, url }: WebSocketProviderProps) {
     return () => {
       newSocket.close();
     };
-  }, [url]);
+  }, [url, ipAddress, dispatch]);
 
   // Methods to interact with the socket
   const sendMessage = (message: any): void => {

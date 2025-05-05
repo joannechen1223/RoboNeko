@@ -85,7 +85,7 @@ const Postcard = ({
 
           {!postcard.isShown && (
             <>
-              <BlurView intensity={30} style={styles.blurOverlay} tint="dark" />
+              <BlurView intensity={25} style={styles.blurOverlay} tint="dark" />
               <View style={styles.lockOverlay}>
                 <Ionicons name="lock-closed" size={50} color="white" />
               </View>
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    backgroundColor: "rgba(60, 60, 60, 0.5)",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
