@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   postcardText: {
-    fontSize: 20,
+    fontSize: 16,
     color: "#333",
   },
   footerContainer: {

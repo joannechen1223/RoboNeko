@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     width: "50%",
   },
   postcardText: {
-    fontSize: 12,
+    fontSize: 10,
     lineHeight: 16,
     color: "#333",
     fontFamily: "SourGummy",
