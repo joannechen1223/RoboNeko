@@ -11,6 +11,7 @@ import { RootState } from "@/app/store";
 
 import { setIsConnected } from "./webSocketSlice";
 
+import { setActionPreferences } from "../Personality/personalitySlice";
 import { setIntimacyScore } from "../Postcards/postcardsSlice";
 
 // Define types for messages and context value
@@ -45,9 +46,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const isConnected = useSelector(
     (state: RootState) => state.webSocket.isConnected,
   );
-  const actionPreferences = useSelector(
-    (state: RootState) => state.personality.actionPreferences,
-  );
 
   useEffect(() => {
     if (!ipAddress) {
@@ -62,17 +60,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       console.log("WebSocket connection established");
       dispatch(setIsConnected(true));
 
-      // Send action preferences when connection is established
-      if (actionPreferences) {
-        sendMessage(
-          {
-            type: "action_preferences",
-            action_preferences: actionPreferences,
-          },
-          newSocket,
-        );
-        console.log("Sent initial action preferences:", actionPreferences);
-      }
+      // Send init client directly using the newSocket instance
+      sendMessage({ type: "init_client" }, newSocket);
     };
 
     newSocket.onmessage = (event: MessageEvent) => {
@@ -82,6 +71,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         console.log("Received message:", data);
         if (data.type === "intimacy_score") {
           dispatch(setIntimacyScore(data.intimacy_score));
+        } else if (data.type === "init_data") {
+          dispatch(setIntimacyScore(data.intimacy_score));
+          dispatch(setActionPreferences(data.action_preferences));
         }
       } catch (error) {
         console.error("Failed to parse WebSocket message:", error);

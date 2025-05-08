@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -18,6 +19,9 @@ const Postcards = () => {
   const router = useRouter();
   const postcards = useSelector(
     (state: RootState) => state.postcards.postcards,
+  );
+  const isWSConnected = useSelector(
+    (state: RootState) => state.webSocket.isConnected,
   );
 
   // Animation setup
@@ -43,35 +47,51 @@ const Postcards = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.topStatsContainer}>
-        <Image
-          source={require("../assets/images/camera-cat.png")}
-          style={styles.cameraCat}
-        />
-        <View style={styles.statsTextContainer}>
-          <Text style={styles.statsText}>You've received</Text>
-          <Text style={styles.statsTextHighlight}>
-            {postcards.filter((postcard) => postcard.isShown).length} /{" "}
-            {postcards.length}
-          </Text>
-          <Text style={styles.statsText}>postcards!</Text>
-        </View>
-      </View>
-
-      <View style={styles.postcardContainer}>
-        {postcards.map((postcard, index) => (
-          <Postcard
-            key={postcard.id}
-            isFlipped={isFlipped[index]}
-            setIsFlipped={(flipped) => {
-              const newIsFlipped = [...isFlipped];
-              newIsFlipped[index] = flipped;
-              setIsFlipped(newIsFlipped);
-            }}
-            postcard={postcard}
+      {isWSConnected && (
+        <View style={styles.topStatsContainer}>
+          <Image
+            source={require("../assets/images/camera-cat.png")}
+            style={styles.cameraCat}
           />
-        ))}
-      </View>
+          <View style={styles.statsTextContainer}>
+            <Text style={styles.statsText}>You've received</Text>
+            <Text style={styles.statsTextHighlight}>
+              {postcards.filter((postcard) => postcard.isShown).length} /{" "}
+              {postcards.length}
+            </Text>
+            <Text style={styles.statsText}>postcards!</Text>
+          </View>
+        </View>
+      )}
+
+      {isWSConnected ? (
+        <View style={styles.postcardContainer}>
+          {postcards.map((postcard, index) => (
+            <Postcard
+              key={postcard.id}
+              isFlipped={isFlipped[index]}
+              setIsFlipped={(flipped) => {
+                const newIsFlipped = [...isFlipped];
+                newIsFlipped[index] = flipped;
+                setIsFlipped(newIsFlipped);
+              }}
+              postcard={postcard}
+            />
+          ))}
+        </View>
+      ) : (
+        <View style={styles.connectionMessageContainer}>
+          <Text style={styles.connectionMessage}>
+            Please connect to RoboNeko to see your postcards!
+          </Text>
+          <Ionicons
+            name="wifi-outline"
+            size={40}
+            color="#695d32"
+            style={styles.connectionIcon}
+          />
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -84,6 +104,7 @@ const styles = StyleSheet.create({
     gap: 30,
     paddingTop: 60,
     paddingBottom: 80,
+    minHeight: "100%",
   },
   backButton: {
     width: 60,
@@ -157,6 +178,27 @@ const styles = StyleSheet.create({
     width: 90,
     height: 120,
     resizeMode: "contain",
+  },
+  connectionMessageContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+    padding: 20,
+    backgroundColor: "#F6EBD9",
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: "#E7CD91",
+    width: "100%",
+  },
+  connectionMessage: {
+    fontSize: 22,
+    fontFamily: "CherryBombOne",
+    color: "#695d32",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  connectionIcon: {
+    marginTop: 10,
   },
 });
 

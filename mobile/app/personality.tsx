@@ -133,48 +133,66 @@ const Personality = () => {
           <Text style={styles.text}>My name is</Text>
           <Text style={styles.textHighlight}>{" " + name}</Text>
         </View>
-        <View style={styles.personalityTextContainer}>
-          <Text style={styles.text}>I'd love be petted on...</Text>
-          <View style={styles.actionsPreferenceContainer}>
-            {Object.entries(actionPreferences).map(([bodyPart, data]) => (
-              <View key={bodyPart} style={styles.preferenceItem}>
-                <Text style={styles.bodyPartText}>{bodyPart}</Text>
-                <View style={styles.heartsContainer}>
-                  {[...Array(3)].map((_, i) => {
-                    if (isPreferencesSecret) {
+
+        {isWSConnected ? (
+          <View style={styles.personalityTextContainer}>
+            <Text style={styles.text}>I'd love be petted on...</Text>
+            <View style={styles.actionsPreferenceContainer}>
+              {Object.entries(actionPreferences).map(([bodyPart, data]) => (
+                <View key={bodyPart} style={styles.preferenceItem}>
+                  <Text style={styles.bodyPartText}>{bodyPart}</Text>
+                  <View style={styles.heartsContainer}>
+                    {[...Array(3)].map((_, i) => {
+                      if (isPreferencesSecret) {
+                        return (
+                          <Image
+                            key={i}
+                            source={require("../assets/images/question-mark-icon.png")}
+                            style={styles.questionMarkIcon}
+                          />
+                        );
+                      }
                       return (
-                        <Image
+                        <Ionicons
                           key={i}
-                          source={require("../assets/images/question-mark-icon.png")}
-                          style={styles.questionMarkIcon}
+                          name={i < data ? "heart" : "heart-outline"}
+                          size={35}
+                          color={i < data ? "#D76B33" : "#7E7E7E"}
                         />
                       );
-                    }
-                    return (
-                      <Ionicons
-                        key={i}
-                        name={i < data ? "heart" : "heart-outline"}
-                        size={35}
-                        color={i < data ? "#D76B33" : "#7E7E7E"}
-                      />
-                    );
-                  })}
+                    })}
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
-        </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => setModalVisible(true)}
-          >
-            <Image
-              source={require("../assets/images/pencil-icon.png")}
-              style={styles.editIcon}
+        ) : (
+          <View style={styles.connectionMessageContainer}>
+            <Text style={styles.connectionMessage}>
+              Please connect to RoboNeko to see my preferences!
+            </Text>
+            <Ionicons
+              name="wifi-outline"
+              size={40}
+              color="#695d32"
+              style={styles.connectionIcon}
             />
-            <Text style={styles.buttonText}>Edit</Text>
-          </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.buttonContainer}>
+          {isWSConnected && (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setModalVisible(true)}
+            >
+              <Image
+                source={require("../assets/images/pencil-icon.png")}
+                style={styles.editIcon}
+              />
+              <Text style={styles.buttonText}>Edit</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -556,6 +574,28 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     resizeMode: "contain",
+  },
+
+  connectionMessageContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+    padding: 20,
+    backgroundColor: "#F6EBD9",
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: "#E7CD91",
+    width: "90%",
+  },
+  connectionMessage: {
+    fontSize: 22,
+    fontFamily: "CherryBombOne",
+    color: "#695d32",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  connectionIcon: {
+    marginTop: 10,
   },
 });
 

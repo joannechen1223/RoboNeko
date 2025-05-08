@@ -9,9 +9,9 @@ const personalitySlice = createSlice({
     isPreferencesSecret: false,
     actionPreferences: {
       [PetPreferences.HEAD]: 0,
-      [PetPreferences.EARS]: 2,
-      [PetPreferences.BELLY]: 1,
-      [PetPreferences.BACK]: 3,
+      [PetPreferences.EARS]: 0,
+      [PetPreferences.BELLY]: 0,
+      [PetPreferences.BACK]: 0,
     },
   },
   reducers: {
@@ -20,7 +20,6 @@ const personalitySlice = createSlice({
     },
     setActionPreferences: (state, action) => {
       state.actionPreferences = action.payload;
-      // todo: update the actions
     },
     setIsPreferencesSecret: (state, action) => {
       state.isPreferencesSecret = action.payload;
