@@ -42,6 +42,22 @@ const Postcards = () => {
           />
         </TouchableOpacity>
       </View>
+
+      <View style={styles.topStatsContainer}>
+        <Image
+          source={require("../assets/images/camera-cat.png")}
+          style={styles.cameraCat}
+        />
+        <View style={styles.statsTextContainer}>
+          <Text style={styles.statsText}>You've received</Text>
+          <Text style={styles.statsTextHighlight}>
+            {postcards.filter((postcard) => postcard.isShown).length} /{" "}
+            {postcards.length}
+          </Text>
+          <Text style={styles.statsText}>postcards!</Text>
+        </View>
+      </View>
+
       <View style={styles.postcardContainer}>
         {postcards.map((postcard, index) => (
           <Postcard
@@ -56,19 +72,6 @@ const Postcards = () => {
           />
         ))}
       </View>
-      <View style={styles.footerContainer}>
-        <Image
-          source={require("../assets/images/camera-cat.png")}
-          style={styles.cameraCat}
-        />
-        <Text style={styles.footerText}>
-          You've received{" "}
-          <Text style={styles.footerTextHighlight}>
-            {postcards.filter((postcard) => postcard.isShown).length}
-          </Text>{" "}
-          postcards!
-        </Text>
-      </View>
     </ScrollView>
   );
 };
@@ -80,6 +83,7 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 30,
     paddingTop: 60,
+    paddingBottom: 80,
   },
   backButton: {
     width: 60,
@@ -114,31 +118,45 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 20,
   },
-  footerContainer: {
+  topStatsContainer: {
     alignItems: "center",
     justifyContent: "space-between",
     flexDirection: "row",
-    width: "90%",
+    width: "100%",
+    marginBottom: 10,
+    borderRadius: 15,
+    padding: 10,
   },
-  cameraCat: {
-    width: 90,
-    height: 120,
-    resizeMode: "contain",
+  statsTextContainer: {
+    flexDirection: "column",
+    width: "75%",
+    alignItems: "center",
   },
-  footerText: {
+  additionalStatsText: {
+    fontSize: 18,
+    color: "#695d32",
+    fontFamily: "CherryBombOne",
+    textAlign: "center",
+  },
+  statsText: {
     fontSize: 24,
     color: "#333",
     fontFamily: "CherryBombOne",
-    width: "80%",
     textAlign: "center",
   },
-  footerTextHighlight: {
+  statsTextHighlight: {
     color: "#695d32",
     fontFamily: "CherryBombOne",
     textShadowColor: "#fff",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 1,
     fontSize: 30,
+    marginVertical: 5,
+  },
+  cameraCat: {
+    width: 90,
+    height: 120,
+    resizeMode: "contain",
   },
 });
 
