@@ -105,7 +105,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       newSocket.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, ipAddress, dispatch, actionPreferences]);
+  }, [url, ipAddress, dispatch]);
 
   // Helper function to send messages through a specific socket or the current one
   const sendMessage = (message: any, socketToUse?: WebSocket): void => {

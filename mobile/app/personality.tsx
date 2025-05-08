@@ -17,6 +17,7 @@ import {
   setActionPreferences,
   setIsPreferencesSecret,
 } from "@/features/Personality/personalitySlice";
+import { setIntimacyScore } from "@/features/Postcards/postcardsSlice";
 import { useWebSocket } from "@/features/WebSocket/WebSocketContext";
 
 import { RootState } from "./store";
@@ -55,10 +56,11 @@ const Personality = () => {
       dispatch(setActionPreferences(editedActionPreferences));
     }
     dispatch(setIsPreferencesSecret(editedIsPreferencesSecret));
-    setModalVisible(false);
+    dispatch(setIntimacyScore(0));
     if (isWSConnected) {
       sendActionPreferences(editedActionPreferences);
     }
+    setModalVisible(false);
   };
 
   const handlePreferenceUpdate = (bodyPart: string, newScore: number) => {
