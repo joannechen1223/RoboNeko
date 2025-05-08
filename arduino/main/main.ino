@@ -1,6 +1,8 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <Adafruit_MPR121.h>
+
+// stl
 #include <vector>
 #include <map>
 #include <string>
@@ -13,6 +15,7 @@
 // websocket
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
+#include <ArduinoJson.h>
 
 // These are the pins used
 #define VS1053_RESET   -1     // VS1053 reset pin (not used!)
@@ -45,19 +48,19 @@ Adafruit_MPR121 touchSensor = Adafruit_MPR121();
 #define HEAD_SERVO_MIN 150
 #define HEAD_SERVO_MAX 600
 
-#define HAND_SERVO_NUM 2
-#define HAND_SERVO_MIN 150
-#define HAND_SERVO_MAX 600
+#define HAND_SERVO_NUM 4
+#define HAND_SERVO_MIN 300
+#define HAND_SERVO_MAX 480
 
-#define TAIL_SERVO_NUM 4
-#define TAIL_SERVO_MIN 150
-#define TAIL_SERVO_MAX 600
+#define TAIL_SERVO_NUM 2
+#define TAIL_SERVO_START 300
+#define TAIL_SERVO_AMOUNT 100
 
 #define TOUCH_SENSITIVITY 20
 
 // websocket
-const char* ssid = "MakerLab";
-const char* password = "makerlab";
+const char* ssid = "";
+const char* password = "";
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -65,22 +68,61 @@ AsyncWebSocket ws("/ws");
 // Proper map initialization
 std::map<int, std::string> touchSensorMap = {
   {6, "head"},
-  {1, "ear_left"},
-  {2, "ear_right"},
-  {4, "belly"},
+  {0, "ear_left"},
+  {1, "ear_right"},
+  {2, "belly"},
   {8, "back"}
 };
 
-std::map<std::string, std::vector<std::string>> actionMap = {
-  {"head", {"headMove"}},
-  {"ear_left", {"handMove"}},
-  {"ear_right", {"handMove"}},
-  {"belly", {"angrySound", "tailMove"}},
-  {"back", {"meowSound", "tailMove"}}
+std::map<int, std::vector<std::string>> preferenceToAction {
+  {0, {"angrySound"}},
+  {1, {"tailMove"}},
+  {2, {"handMove"}},
+  {3, {"meowSound", "headMove"}}
+};
+
+std::map<std::string, int> actionPreferences = {
+  {"head", 0},
+  {"ear_left", 2},
+  {"ear_right", 2},
+  {"belly", 1},
+  {"back", 3}
 };
 
 std::vector<bool> prevTouched(12, false);
 std::vector<bool> currentTouched(12, false);
+int intimacyScore = 0;
+
+void sendIntimacyScoreToClient() {
+  String jsonString;
+  StaticJsonDocument<256> doc;
+  doc["type"] = "intimacy_score";
+  doc["intimacy_score"] = String(intimacyScore);
+
+  Serial.print("Sending intimacy score to client: ");
+  Serial.println(intimacyScore);
+
+  serializeJson(doc, jsonString);
+  ws.textAll(jsonString);
+}
+
+void sendInitDataToClient() {
+  String jsonString;
+  StaticJsonDocument<256> doc;
+  doc["type"] = "init_data";
+  doc["intimacy_score"] = intimacyScore;
+
+  JsonObject prefs = doc.createNestedObject("action_preferences");
+  prefs["Head"] = actionPreferences["head"];
+  prefs["Ears"] = actionPreferences["ear_left"];
+  prefs["Belly"] = actionPreferences["belly"];
+  prefs["Back"] = actionPreferences["back"];
+
+  Serial.println("Sending init action to client...");
+
+  serializeJson(doc, jsonString);
+  ws.textAll(jsonString);
+}
 
 void setup() {
   Serial.begin(115200);
@@ -144,6 +186,55 @@ void setup() {
   delay(10);
 }
 
+
+
+void handleWebSocketMessage(const String& msg) {
+  StaticJsonDocument<512> doc;
+  DeserializationError error = deserializeJson(doc, msg);
+
+  if (error) {
+    Serial.print("web socket: deserialize Json failed: ");
+    Serial.print(error.f_str());
+    return;
+  }
+
+  if (doc["type"] == "action_preferences") {
+    JsonObject prefs = doc["action_preferences"];
+
+    for (JsonPair kv: prefs) {
+      String key = kv.key().c_str();
+      int value = kv.value().as<int>();
+
+      if (key.equalsIgnoreCase("Head")) {
+        actionPreferences["head"] = value;
+      } else if (key.equalsIgnoreCase("Ears")) {
+        actionPreferences["ear_left"] = value;
+        actionPreferences["ear_right"] = value;
+      } else if (key.equalsIgnoreCase("Belly")) {
+        actionPreferences["belly"] = value;
+      } else if (key.equalsIgnoreCase("Back")) {
+        actionPreferences["back"] = value;
+      }
+    }
+
+    Serial.printf("ActionPreferneces length: %d\n", actionPreferences.size());
+
+    // update action
+    for (const auto &pair: actionPreferences) {
+      std::string bodyPart = pair.first;
+      int score = pair.second;
+      Serial.printf("  %s: %d\n", bodyPart.c_str(), score);
+    }
+
+    // init intimacy score
+    intimacyScore = 0;
+    // sendIntimacyScoreToClient();
+  } else if (doc["type"] == "init_client") {
+    Serial.println("Init app client...");
+    sendInitDataToClient();
+  }
+}
+
 void headMove() {
   Serial.println("head move");
   for (uint16_t pulselen = HEAD_SERVO_MIN; pulselen < HEAD_SERVO_MAX; pulselen++) {
@@ -170,11 +261,16 @@ void handMove() {
 
 void tailMove() {
   Serial.println("tail move");
-  for (uint16_t pulselen = TAIL_SERVO_MIN; pulselen < TAIL_SERVO_MAX; pulselen++) {
+  
+  for (uint16_t pulselen = TAIL_SERVO_START; pulselen < TAIL_SERVO_START + TAIL_SERVO_AMOUNT; pulselen++) {
     pwm.setPWM(TAIL_SERVO_NUM, 0, pulselen);
   }
   delay(200);
-  for (uint16_t pulselen = TAIL_SERVO_MAX; pulselen > TAIL_SERVO_MIN; pulselen--) {
+  for (uint16_t pulselen = TAIL_SERVO_START + TAIL_SERVO_AMOUNT; pulselen > TAIL_SERVO_START - TAIL_SERVO_AMOUNT; pulselen--) {
+    pwm.setPWM(TAIL_SERVO_NUM, 0, pulselen);
+  }
+  delay(200);
+  for (uint16_t pulselen = TAIL_SERVO_START - TAIL_SERVO_AMOUNT; pulselen < TAIL_SERVO_START; pulselen++) {
     pwm.setPWM(TAIL_SERVO_NUM, 0, pulselen);
   }
   delay(200);
@@ -182,10 +278,7 @@ void tailMove() {
 
 void loop() {
   ws.cleanupClients();
-
-  //uint16_t touched = touchSensor.touched();
-
-  std::vector<std::string> actions;
+  
   int touchedSensorNum = -1;
 
   for (int i = 0; i < 12; i++) {
@@ -197,13 +290,22 @@ void loop() {
       if (currentTouched[i]) {
         Serial.print(i);
         Serial.println(" Sensor touch detected");
-        actions = actionMap[touchSensorMap[i]];
+        
         touchedSensorNum = i;
       }
     }
   }
 
   if (touchedSensorNum != -1 && currentTouched[touchedSensorNum] != prevTouched[touchedSensorNum]) {
+    std::string touchedBodyPart = touchSensorMap[touchedSensorNum];
+    int preferenceScore = actionPreferences[touchedBodyPart];
+    std::vector<std::string> actions = preferenceToAction[preferenceScore];
+
+    // update intimacy score
+    intimacyScore += actionPreferences[touchedBodyPart];
+    sendIntimacyScoreToClient();
+
+    // do actions
     for (int i = 0; i < actions.size(); i++) {
       //Serial.println(actions[i].c_str());  // Added .c_str()
       if (actions[i] == "headMove") {
@@ -273,6 +375,8 @@ void onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client,
         String msg = String((char *)data);
         Serial.print("Received WebSocket message: ");
         Serial.println(msg);
+
+        handleWebSocketMessage(msg);
       }
       break;
     }
